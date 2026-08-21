@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robotics Contest Timer Prep</title>
+  <style>
+    /* High contrast setup for big screens */
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #464444;
+      color: #e6e2e2;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #School-Name {
+      font-size: 3vw;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #e6e2e2;
+      margin-bottom: 10px;
+    }
+
+    #Real-Time-Clock {
+      font-size: 2vw;
+      color: #e6e2e2;
+      margin-bottom: 20px;
+    }
+
+    #phase-label {
+      font-size: 2vw;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #e6e2e2;
+      margin-bottom: 1px;
+    }
+
+    /* Layout coordinates container for numbers + logo */
+    .timer-row {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    #timer-display {
+      font-size: 10vw; 
+      font-weight: bold;
+      font-variant-numeric: tabular-nums; 
+      margin: 0;
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+    }
+
+    #ms-display {
+      font-size: 4vw;
+      color: #888888;
+      margin-left: 10px;
+    }
+
+    /* Display logo in its original aspect ratio, with no cropping */
+    #contest-logo {
+      position: absolute;
+      right: 6vw;
+      height: 16vw;          /* Matches the height scale of the row */
+      width: auto;           /* Automatically scales the width to keep original proportions */
+      max-width: 18vw;       /* Prevents ultra-wide logos from overlapping the timer */
+      object-fit: contain;   /* Ensures absolutely zero cropping or squishing */
+    }
+
+    #campus-logo {
+      position: absolute;
+      left: 6vw;
+      height: 20vw;          /* Matches the height scale of the row */
+      width: auto;           /* Automatically scales the width to keep original proportions */
+      max-width: 30vw;       /* Prevents ultra-wide logos from overlapping the timer */
+      object-fit: contain;   /* Ensures absolutely zero cropping or squishing */
+    }
+
+    .warning { color: #daa410; } 
+    .danger { color: #f44336; }  
+
+    .controls {
+      display: flex;
+      gap: 20px;
+      margin-top: 40px;
+      align-items: center;
+    }
+
+    button {
+      font-size: 2vw;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+
+    button:hover { opacity: 0.8; }
+    button:active { transform: scale(0.98); }
+
+    #btn-start { background-color: #4CAF50; color: white; }
+    #btn-pause { background-color: #FF9800; color: white; }
+    #btn-reset { background-color: #e70707; color: white; }
+
+    #btn-arrow, #btn-toggle-phase {
+      background-color: #007bff;
+      color: #ffffff;
+      font-size: 1.5vw;
+      padding: 0;
+      width: 3vw;
+      height: 3vw;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-arrow:hover, #btn-toggle-phase:hover { background-color: #0056b3; }
+
+    #Contest-Name {
+      font-size: 2vw;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #e6e2e2;
+      margin-top: 20px;
+    }
+
+    #Contest-Date {
+      font-size: 1.5vw;
+      color: #e6e2e2;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="School-Name">โรงเรียนวิทยาศาสตร์พัฒนา</div>
+  <div id="Real-Time-Clock">Real Time: <span id="time">00:00:00</span></div>
+  <div id="phase-label">ช่วงเวลาเตรียมความพร้อมของอุปกรณ์</div>
+  
+  <!-- Row 4: Centered Timer with Right Aligned Original Logo -->
+  <div class="timer-row">
+    <div id="timer-display">
+      <span id="min-sec">01:00</span><span id="ms-display">.000</span>
+    </div>
+    <!-- Keeps original shape. If logo.png is missing, it cleanly hides to keep the screen looking professional -->
+    <img id="contest-logo" src="logo1.png" alt="Contest Logo" onerror="this.style.display='none';">
+    <img id="campus-logo" src="logo2.png" alt="Campus Logo" onerror="this.style.display='none';">
+  </div>
+
+  <!-- Row 5: Interaction Controls Panel Grid -->
+  <div class="controls">
+    <button id="btn-arrow">↑</button>
+    <button id="btn-start">Start</button>
+    <button id="btn-pause">Pause</button>
+    <button id="btn-reset">Reset</button>
+    <button id="btn-toggle-phase">↻</button>
+  </div>
+
+  <!-- Row 6: Info Elements Footers -->
+  <div id="Contest-Name">การแข่งขันทักษะทางวิชาการ การประกวดแข่งขันหุ่นยนต์ ระดับภาคกลาง</div>
+  <div id="Contest-Date">วันที่ 20 - 22 กรกฏาคม 2569</div>
+
+  <script>
+    // Configuration Setup values in ms
+    const PREP_DURATION = 60 * 1000;      
+    const CONTEST_DURATION = 180 * 1000;  
+    
+    const schools = [
+      "โรงเรียนวิทยาศาสตร์พัฒนา",
+      "โรงเรียนรุ่งอรุณศึกษา",
+      "โรงเรียนปัญญาวุฒิ",
+      "โรงเรียนศรีประชานุกูล",
+      "โรงเรียนเทพประสิทธิ์วิทยา",
+      "โรงเรียนราชวิถีพิทยา",
+      "โรงเรียนกุลบุตรพัฒนา",
+      "โรงเรียนแสงธรรมประทีป",
+      "โรงเรียนนวภูมินทร์",
+      "โรงเรียนสันติราษฎร์บำรุง"
+    ];
+
+    // Execution States
+    let currentPhase = 'prep'; 
+    let timeRemaining = PREP_DURATION;
+    let endTime = null;
+    let timerInterval = null;
+    let isRunning = false;
+
+    // DOM References
+    const mainDisplay = document.getElementById('timer-display');
+    const minSecDisplay = document.getElementById('min-sec');
+    const msDisplay = document.getElementById('ms-display');
+    const phaseLabel = document.getElementById('phase-label');
+    const startBtn = document.getElementById('btn-start');
+    const pauseBtn = document.getElementById('btn-pause');
+    const resetBtn = document.getElementById('btn-reset');
+    const arrowBtn = document.getElementById('btn-arrow'); 
+    const togglePhaseBtn = document.getElementById('btn-toggle-phase'); 
+    const schoolDisplay = document.getElementById('School-Name'); 
+    const timeDisplay = document.getElementById('time');
+
+    schoolDisplay.textContent = schools[0];
+
+    // 1. Clock Tracker
+    function runRealTimeClock() {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const seconds = now.getSeconds().toString().padStart(2, '0');
+      timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    runRealTimeClock();
+    setInterval(runRealTimeClock, 1000);
+
+    // 2. Queue Rotation
+    arrowBtn.addEventListener('click', () => {
+      const currentSchool = schools.shift();
+      schools.push(currentSchool);
+      schoolDisplay.textContent = schools[0];
+    });
+
+    // 3. Phase Controller 
+    togglePhaseBtn.addEventListener('click', () => {
+      isRunning = false;
+      clearInterval(timerInterval);
+
+      if (currentPhase === 'prep') {
+        currentPhase = 'contest';
+        phaseLabel.textContent = "ช่วงเวลาการแข่งขัน";
+        timeRemaining = CONTEST_DURATION;
+      } else {
+        currentPhase = 'prep';
+        phaseLabel.textContent = "ช่วงเวลาเตรียมความพร้อมของอุปกรณ์";
+        timeRemaining = PREP_DURATION;
+      }
+      updateDisplay();
+    });
+
+    // 4. Formatting Updates
+    function updateDisplay() {
+      let totalSeconds = Math.floor(timeRemaining / 1000);
+      
+      const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+      const s = (totalSeconds % 60).toString().padStart(2, '0');
+      const ms = Math.floor(timeRemaining % 1000).toString().padStart(3, '0');
+
+      minSecDisplay.textContent = `${m}:${s}`;
+      msDisplay.textContent = `.${ms}`;
+      
+      mainDisplay.classList.remove('warning', 'danger');
+      if (totalSeconds <= 10 && timeRemaining > 0) {
+        mainDisplay.classList.add('danger');
+      } else if (totalSeconds <= 30 && timeRemaining > 0) {
+        mainDisplay.classList.add('warning');
+      }
+    }
+
+    // 5. 3-Second Audio Synth Buzzer
+    // 5. Synthesized Mechanical Ringing Bell
+function playContestBuzzer() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+    
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    // A mix of sine/triangle creates a slightly metallic tone
+    oscillator.type = 'triangle'; 
+    oscillator.frequency.value = 800; // Pitch of the bell
+
+    const duration = 2.0; // Rings for 2 seconds
+    const startTime = audioCtx.currentTime;
+
+    // Simulate the clapper hitting the bell 15 times a second
+    for (let i = 0; i < duration * 15; i++) {
+      let strikeTime = startTime + (i / 15);
+      gainNode.gain.setValueAtTime(0, strikeTime);
+      gainNode.gain.linearRampToValueAtTime(0.8, strikeTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0, strikeTime + 0.05);
+    }
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+    // 6. High Frequency Processing Tick Engine
+    function tick() {
+      timeRemaining = endTime - Date.now();
+
+      if (timeRemaining <= 0) {
+        timeRemaining = 0;
+        clearInterval(timerInterval);
+        isRunning = false;
+        playContestBuzzer();
+      }
+      updateDisplay();
+    }
+
+    // 7. Event Handlers
+    startBtn.addEventListener('click', () => {
+      if (!isRunning && timeRemaining > 0) {
+        isRunning = true;
+        endTime = Date.now() + timeRemaining;
+        timerInterval = setInterval(tick, 10); 
+      }
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false;
+        clearInterval(timerInterval);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      isRunning = false;
+      clearInterval(timerInterval);
+      timeRemaining = (currentPhase === 'prep') ? PREP_DURATION : CONTEST_DURATION;
+      updateDisplay();
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
