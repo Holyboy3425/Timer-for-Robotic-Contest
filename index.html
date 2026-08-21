@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Robotics Contest Timer Prep</title>
+  <title>Robotics Contest Timer</title>
   <style>
     /* High contrast setup for big screens */
     body {
@@ -18,12 +18,22 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
+    #Phase-Name {
+      font-size: 2.5vw;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #69e1ff;
+      margin-bottom: 8px;
+    }
+
     #School-Name {
       font-size: 3vw;
       text-transform: uppercase;
       letter-spacing: 3px;
+      text-align: center;
       color: #e6e2e2;
       margin-bottom: 10px;
+      font-weight: bold;
     }
 
     #Real-Time-Clock {
@@ -32,12 +42,12 @@
       margin-bottom: 20px;
     }
 
-    #phase-label {
-      font-size: 2vw;
+    #Timer-Name {
+      font-size: 1.5vw;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #e6e2e2;
-      margin-bottom: 1px;
+      letter-spacing: 3px;
+      color: #69e1ff;
+      margin-bottom: 8px;
     }
 
     /* Layout coordinates container for numbers + logo */
@@ -55,39 +65,68 @@
       font-weight: bold;
       font-variant-numeric: tabular-nums; 
       margin: 0;
-      line-height: 1;
       display: flex;
-      align-items: baseline;
+      align-items: flex-start;
       justify-content: center;
     }
 
-    #ms-display {
-      font-size: 4vw;
-      color: #888888;
-      margin-left: 10px;
+    .time-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .time-val {
+      line-height: 1;
+    }
+
+    .colon {
+      line-height: 1;
+      margin: 0 10px;
+    }
+
+    .arrow-container {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .time-adjust-btn {
+      background-color: #555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.2vw;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .time-adjust-btn:hover {
+      background-color: #777;
     }
 
     /* Display logo in its original aspect ratio, with no cropping */
     #contest-logo {
       position: absolute;
       right: 6vw;
-      height: 16vw;          /* Matches the height scale of the row */
-      width: auto;           /* Automatically scales the width to keep original proportions */
-      max-width: 18vw;       /* Prevents ultra-wide logos from overlapping the timer */
-      object-fit: contain;   /* Ensures absolutely zero cropping or squishing */
+      height: 16vw;          
+      width: auto;           
+      max-width: 18vw;       
+      object-fit: contain;   
     }
 
     #campus-logo {
       position: absolute;
       left: 6vw;
-      height: 20vw;          /* Matches the height scale of the row */
-      width: auto;           /* Automatically scales the width to keep original proportions */
-      max-width: 30vw;       /* Prevents ultra-wide logos from overlapping the timer */
-      object-fit: contain;   /* Ensures absolutely zero cropping or squishing */
+      height: 20vw;          
+      width: auto;           
+      max-width: 30vw;       
+      object-fit: contain;   
     }
 
-    .warning { color: #daa410; } 
-    .danger { color: #f44336; }  
+    .warning .time-val { color: #daa410; } 
+    .danger .time-val { color: #f44336; }  
 
     .controls {
       display: flex;
@@ -110,10 +149,9 @@
     button:active { transform: scale(0.98); }
 
     #btn-start { background-color: #4CAF50; color: white; }
-    #btn-pause { background-color: #FF9800; color: white; }
     #btn-reset { background-color: #e70707; color: white; }
 
-    #btn-arrow, #btn-toggle-phase {
+    #btn-arrow {
       background-color: #007bff;
       color: #ffffff;
       font-size: 1.5vw;
@@ -124,36 +162,53 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      border: none;
     }
-    #btn-arrow:hover, #btn-toggle-phase:hover { background-color: #0056b3; }
+    #btn-arrow:hover { background-color: #0056b3; }
 
-    #Contest-Name {
-      font-size: 2vw;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+    #Next-Team-Footer {
+      font-size: 3vw; 
       color: #e6e2e2;
-      margin-top: 20px;
-    }
-
-    #Contest-Date {
-      font-size: 1.5vw;
-      color: #e6e2e2;
-      margin-top: 5px;
+      margin-top: 30px;
+      text-align: center;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <div id="School-Name">โรงเรียนวิทยาศาสตร์พัฒนา</div>
+  <div id="Phase-Name">รอบการซ้อมที่ 2</div>
+  <div id="School-Name">ทีมปัจจุบัน: โรงเรียนวิทยาศาสตร์พัฒนา</div>
   <div id="Real-Time-Clock">Real Time: <span id="time">00:00:00</span></div>
-  <div id="phase-label">ช่วงเวลาเตรียมความพร้อมของอุปกรณ์</div>
+  <div id="Timer-Name">ระยะเวลาการประกอบหุ่นยนต์เพื่อแข่งขัน</div>
   
-  <!-- Row 4: Centered Timer with Right Aligned Original Logo -->
+  <!-- Row 4: Centered Timer with Custom Action Adjusters -->
   <div class="timer-row">
     <div id="timer-display">
-      <span id="min-sec">01:00</span><span id="ms-display">.000</span>
+      <div class="time-block">
+        <span id="hours-display" class="time-val">00</span>
+        <div class="arrow-container">
+          <button class="time-adjust-btn" id="hours-up">▲</button>
+          <button class="time-adjust-btn" id="hours-down">▼</button>
+        </div>
+      </div>
+      <span class="colon">:</span>
+      <div class="time-block">
+        <span id="min-display" class="time-val">00</span>
+        <div class="arrow-container">
+          <button class="time-adjust-btn" id="min-up">▲</button>
+          <button class="time-adjust-btn" id="min-down">▼</button>
+        </div>
+      </div>
+      <span class="colon">:</span>
+      <div class="time-block">
+        <span id="sec-display" class="time-val">00</span>
+        <div class="arrow-container">
+          <button class="time-adjust-btn" id="sec-up">▲</button>
+          <button class="time-adjust-btn" id="sec-down">▼</button>
+        </div>
+      </div>
     </div>
-    <!-- Keeps original shape. If logo.png is missing, it cleanly hides to keep the screen looking professional -->
     <img id="contest-logo" src="logo1.png" alt="Contest Logo" onerror="this.style.display='none';">
     <img id="campus-logo" src="logo2.png" alt="Campus Logo" onerror="this.style.display='none';">
   </div>
@@ -162,54 +217,57 @@
   <div class="controls">
     <button id="btn-arrow">↑</button>
     <button id="btn-start">Start</button>
-    <button id="btn-pause">Pause</button>
     <button id="btn-reset">Reset</button>
-    <button id="btn-toggle-phase">↻</button>
   </div>
 
-  <!-- Row 6: Info Elements Footers -->
-  <div id="Contest-Name">การแข่งขันทักษะทางวิชาการ การประกวดแข่งขันหุ่นยนต์ ระดับภาคกลาง</div>
-  <div id="Contest-Date">วันที่ 20 - 22 กรกฏาคม 2569</div>
+  <!-- Row 6: Replaced Footer Information Display (Show only next team) -->
+  <div id="Next-Team-Footer">ทีมถัดไป: โรงเรียนรุ่งอรุณศึกษา</div>
 
   <script>
-    // Configuration Setup values in ms
-    const PREP_DURATION = 60 * 1000;      
-    const CONTEST_DURATION = 180 * 1000;  
-    
+    // รายชื่อโรงเรียน (สามารถเคลียร์ให้เป็น [] เพื่อทดสอบคำว่า "ไม่จัดคิว" ได้ครับ)
     const schools = [
-      "โรงเรียนวิทยาศาสตร์พัฒนา",
-      "โรงเรียนรุ่งอรุณศึกษา",
-      "โรงเรียนปัญญาวุฒิ",
-      "โรงเรียนศรีประชานุกูล",
-      "โรงเรียนเทพประสิทธิ์วิทยา",
-      "โรงเรียนราชวิถีพิทยา",
-      "โรงเรียนกุลบุตรพัฒนา",
-      "โรงเรียนแสงธรรมประทีป",
-      "โรงเรียนนวภูมินทร์",
-      "โรงเรียนสันติราษฎร์บำรุง"
+      "โรงเรียนสามโคก",
+      "โรงเรียนนนทบุรีวิทยาลัย",
+      "โรงเรียนทวารวดี",
+      "โรงเรียนเทศบาลบ้านม่วง",
+      "โรงเรียนเทศบาลท่าโขลง ๑",
+      "โรงเรียนรัชตวิทยาคม",
+      "โรงเรียนบ้านปล่องเหลี่ยม",
+      "โรงเรียนเทศบาล ๔ วัดบำรุงธรรม",
+      "โรงเรียนวัดป่าคาเจริญวิทยา",
+      "โรงเรียนสาธิตพหลโยธินรามินทร์ภักดี (เทศบาลเมืองราชบุรี)",
+      "โรงเรียนสหศึกษาบางบัวทอง",
+      "โรงเรียนสาธิตเทศบาลบ้านหัวหิน",
+      "โรงเรียนองค์การบริหารส่วนจังหวัดชัยนาท"
     ];
 
     // Execution States
-    let currentPhase = 'prep'; 
-    let timeRemaining = PREP_DURATION;
+    let timeRemaining = 0; 
     let endTime = null;
     let timerInterval = null;
     let isRunning = false;
 
     // DOM References
     const mainDisplay = document.getElementById('timer-display');
-    const minSecDisplay = document.getElementById('min-sec');
-    const msDisplay = document.getElementById('ms-display');
-    const phaseLabel = document.getElementById('phase-label');
+    const hoursDisplay = document.getElementById('hours-display');
+    const minDisplay = document.getElementById('min-display');
+    const secDisplay = document.getElementById('sec-display');
     const startBtn = document.getElementById('btn-start');
-    const pauseBtn = document.getElementById('btn-pause');
     const resetBtn = document.getElementById('btn-reset');
     const arrowBtn = document.getElementById('btn-arrow'); 
-    const togglePhaseBtn = document.getElementById('btn-toggle-phase'); 
     const schoolDisplay = document.getElementById('School-Name'); 
+    const nextTeamFooter = document.getElementById('Next-Team-Footer');
     const timeDisplay = document.getElementById('time');
 
-    schoolDisplay.textContent = schools[0];
+    // Update School Queue Strings with "ไม่จัดคิว" fallback
+    function updateSchoolDisplay() {
+      const currentSchool = schools[0] || "ไม่จัดคิว";
+      const nextSchool = schools[1] || "ไม่จัดคิว";
+
+      schoolDisplay.textContent = `ทีมปัจจุบัน: ${currentSchool}`;
+      nextTeamFooter.textContent = `ทีมถัดไป: ${nextSchool}`;
+    }
+    updateSchoolDisplay();
 
     // 1. Clock Tracker
     function runRealTimeClock() {
@@ -222,40 +280,37 @@
     runRealTimeClock();
     setInterval(runRealTimeClock, 1000);
 
-    // 2. Queue Rotation
-    arrowBtn.addEventListener('click', () => {
-      const currentSchool = schools.shift();
-      schools.push(currentSchool);
-      schoolDisplay.textContent = schools[0];
-    });
-
-    // 3. Phase Controller 
-    togglePhaseBtn.addEventListener('click', () => {
-      isRunning = false;
-      clearInterval(timerInterval);
-
-      if (currentPhase === 'prep') {
-        currentPhase = 'contest';
-        phaseLabel.textContent = "ช่วงเวลาการแข่งขัน";
-        timeRemaining = CONTEST_DURATION;
-      } else {
-        currentPhase = 'prep';
-        phaseLabel.textContent = "ช่วงเวลาเตรียมความพร้อมของอุปกรณ์";
-        timeRemaining = PREP_DURATION;
+    // 2. Queue Rotation Functions (Forward and Backward)
+    function rotateQueueForward() {
+      if (schools.length > 1) {
+        const currentSchool = schools.shift();
+        schools.push(currentSchool);
+        updateSchoolDisplay();
       }
-      updateDisplay();
-    });
+    }
 
-    // 4. Formatting Updates
+    function rotateQueueBackward() {
+      if (schools.length > 1) {
+        const lastSchool = schools.pop();
+        schools.unshift(lastSchool);
+        updateSchoolDisplay();
+      }
+    }
+
+    // Click blue button goes forward
+    arrowBtn.addEventListener('click', rotateQueueForward);
+
+    // 3. Formatting Updates
     function updateDisplay() {
       let totalSeconds = Math.floor(timeRemaining / 1000);
       
-      const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+      const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+      const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
       const s = (totalSeconds % 60).toString().padStart(2, '0');
-      const ms = Math.floor(timeRemaining % 1000).toString().padStart(3, '0');
 
-      minSecDisplay.textContent = `${m}:${s}`;
-      msDisplay.textContent = `.${ms}`;
+      hoursDisplay.textContent = h;
+      minDisplay.textContent = m;
+      secDisplay.textContent = s;
       
       mainDisplay.classList.remove('warning', 'danger');
       if (totalSeconds <= 10 && timeRemaining > 0) {
@@ -265,43 +320,51 @@
       }
     }
 
-    // 5. 3-Second Audio Synth Buzzer
-    // 5. Synthesized Mechanical Ringing Bell
-function playContestBuzzer() {
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioCtx = new AudioContext();
-    
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    // A mix of sine/triangle creates a slightly metallic tone
-    oscillator.type = 'triangle'; 
-    oscillator.frequency.value = 800; // Pitch of the bell
-
-    const duration = 2.0; // Rings for 2 seconds
-    const startTime = audioCtx.currentTime;
-
-    // Simulate the clapper hitting the bell 15 times a second
-    for (let i = 0; i < duration * 15; i++) {
-      let strikeTime = startTime + (i / 15);
-      gainNode.gain.setValueAtTime(0, strikeTime);
-      gainNode.gain.linearRampToValueAtTime(0.8, strikeTime + 0.01);
-      gainNode.gain.linearRampToValueAtTime(0, strikeTime + 0.05);
+    // Helper to toggle start/pause visual appearance
+    function setStartButtonState(running) {
+      if (running) {
+        startBtn.textContent = 'Pause';
+        startBtn.style.backgroundColor = '#FF9800';
+      } else {
+        startBtn.textContent = 'Start';
+        startBtn.style.backgroundColor = '#4CAF50';
+      }
     }
 
-    oscillator.start(startTime);
-    oscillator.stop(startTime + duration);
+    // 4. Synthesized Mechanical Ringing Bell
+    function playContestBuzzer() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
 
-  } catch (e) {
-    console.error(e);
-  }
-}
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
 
-    // 6. High Frequency Processing Tick Engine
+        oscillator.type = 'triangle'; 
+        oscillator.frequency.value = 800; 
+
+        const duration = 2.0; 
+        const startTime = audioCtx.currentTime;
+
+        for (let i = 0; i < duration * 15; i++) {
+          let strikeTime = startTime + (i / 15);
+          gainNode.gain.setValueAtTime(0, strikeTime);
+          gainNode.gain.linearRampToValueAtTime(0.8, strikeTime + 0.01);
+          gainNode.gain.linearRampToValueAtTime(0, strikeTime + 0.05);
+        }
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 5. High Frequency Processing Tick Engine
     function tick() {
       timeRemaining = endTime - Date.now();
 
@@ -309,32 +372,68 @@ function playContestBuzzer() {
         timeRemaining = 0;
         clearInterval(timerInterval);
         isRunning = false;
+        setStartButtonState(false);
         playContestBuzzer();
       }
       updateDisplay();
     }
 
-    // 7. Event Handlers
-    startBtn.addEventListener('click', () => {
+    // 6. Action Toggles
+    function toggleTimer() {
       if (!isRunning && timeRemaining > 0) {
         isRunning = true;
+        setStartButtonState(true);
         endTime = Date.now() + timeRemaining;
         timerInterval = setInterval(tick, 10); 
-      }
-    });
-
-    pauseBtn.addEventListener('click', () => {
-      if (isRunning) {
+      } else if (isRunning) {
         isRunning = false;
+        setStartButtonState(false);
         clearInterval(timerInterval);
       }
-    });
+    }
+
+    startBtn.addEventListener('click', toggleTimer);
 
     resetBtn.addEventListener('click', () => {
       isRunning = false;
       clearInterval(timerInterval);
-      timeRemaining = (currentPhase === 'prep') ? PREP_DURATION : CONTEST_DURATION;
+      setStartButtonState(false);
+      timeRemaining = 0; 
       updateDisplay();
+    });
+
+    // Up and Down Adjustment Buttons
+    document.getElementById('hours-up').addEventListener('click', () => {
+      if (!isRunning) { timeRemaining += 3600 * 1000; updateDisplay(); }
+    });
+    document.getElementById('hours-down').addEventListener('click', () => {
+      if (!isRunning) { timeRemaining = Math.max(0, timeRemaining - 3600 * 1000); updateDisplay(); }
+    });
+    document.getElementById('min-up').addEventListener('click', () => {
+      if (!isRunning) { timeRemaining += 60 * 1000; updateDisplay(); }
+    });
+    document.getElementById('min-down').addEventListener('click', () => {
+      if (!isRunning) { timeRemaining = Math.max(0, timeRemaining - 60 * 1000); updateDisplay(); }
+    });
+    document.getElementById('sec-up').addEventListener('click', () => {
+      if (!isRunning) { timeRemaining += 1000; updateDisplay(); }
+    });
+    document.getElementById('sec-down').addEventListener('click', () => {
+      if (!isRunning) { timeRemaining = Math.max(0, timeRemaining - 1000); updateDisplay(); }
+    });
+
+    // 7. Keyboard Control Listeners (Spacebar & Arrow keys)
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault(); 
+        toggleTimer();      
+      } else if (e.code === 'ArrowUp') {
+        e.preventDefault(); // กันหน้าจอสกรอลล์ขึ้น
+        rotateQueueForward();
+      } else if (e.code === 'ArrowDown') {
+        e.preventDefault(); // กันหน้าจอสกรอลล์ลง
+        rotateQueueBackward();
+      }
     });
 
     updateDisplay();
